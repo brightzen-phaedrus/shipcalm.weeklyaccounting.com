@@ -6,5 +6,9 @@
   {
     "email": "z@brightzen.com",
     "passwordHash": "$2b$10$44fS72P.U8tqI.gJgKqPIOxkDjqfUoiZnlP23K5GIPpRcXfFD6qn6"
+  },
+  {
+    "email": "jakeschwartz@gmail.com",
+    "passwordHash": "$2b$10$cw8c.zvM.bZFYDq3BTFtzu796/nHY4oA0o4fP0OjbbRVKfka6IOli"
   }
 ]
