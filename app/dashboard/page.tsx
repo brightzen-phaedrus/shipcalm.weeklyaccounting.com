@@ -1,47 +1,96 @@
+import { Suspense } from "react";
 import { auth, signOut } from "@/auth";
-import { getContractSentSeries, type SeriesPoint } from "@/lib/sheets";
-import { ContractSentChart } from "./ContractSentChart";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { ChartSkeleton } from "./ChartSkeleton";
+import { ContractSentSection } from "./ContractSentSection";
 
 export default async function DashboardPage() {
   const session = await auth();
 
-  let data: SeriesPoint[] = [];
-  let error: string | null = null;
-  try {
-    data = await getContractSentSeries();
-  } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to load chart data.";
-  }
-
   return (
-    <main className="min-h-dvh p-6 space-y-6 max-w-5xl mx-auto">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">ShipCalm Dashboard</h1>
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}
-        >
-          <button className="text-sm underline" type="submit">Sign out</button>
-        </form>
-      </header>
-      <p className="text-sm text-gray-600">
-        Signed in as {session?.user?.email}
-      </p>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Contract Sent</h2>
-        {error ? (
-          <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
+    <div
+      className="min-h-dvh"
+      style={{ background: "var(--background)", color: "var(--foreground)" }}
+    >
+      {/* Top nav */}
+      <header
+        className="sticky top-0 z-10 px-6 py-3 flex items-center justify-between"
+        style={{
+          background: "var(--card-bg)",
+          borderBottom: "1px solid var(--card-border)",
+          boxShadow: "var(--card-shadow)",
+        }}
+      >
+        {/* Logo + brand */}
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold select-none"
+            style={{ background: "var(--metric-contract-sent)" }}
+            aria-hidden="true"
+          >
+            SC
           </div>
-        ) : data.length === 0 ? (
-          <p className="text-sm text-gray-500">No data points found in MMM!53.</p>
-        ) : (
-          <ContractSentChart data={data} />
-        )}
-      </section>
-    </main>
+          <span className="font-semibold text-base tracking-tight">
+            ShipCalm
+          </span>
+        </div>
+
+        {/* User + sign out */}
+        <div className="flex items-center gap-4">
+          {session?.user?.email && (
+            <span
+              className="text-xs hidden sm:block"
+              style={{ color: "var(--axis-label)" }}
+            >
+              {session.user.email}
+            </span>
+          )}
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/login" });
+            }}
+          >
+            <button
+              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
+              style={{
+                color: "var(--axis-label)",
+                border: "1px solid var(--card-border)",
+              }}
+              type="submit"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="px-4 sm:px-6 py-8 max-w-6xl mx-auto">
+        {/* Page heading */}
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--axis-label)" }}>
+            Metrics at a glance
+          </p>
+        </div>
+
+        {/* Metrics grid — 1 col mobile, 2 col desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <ContractSentSection />
+            </Suspense>
+          </ErrorBoundary>
+
+          {/* Placeholder card for future metrics */}
+          {/* <ErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <AnotherMetricSection />
+            </Suspense>
+          </ErrorBoundary> */}
+        </div>
+      </main>
+    </div>
   );
 }
